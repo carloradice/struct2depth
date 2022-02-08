@@ -34,9 +34,10 @@ import model
 import nets
 import reader
 import util
+import wandb
 
 gfile = tf.gfile
-MAX_TO_KEEP = 1000000  # Maximum number of checkpoints to keep.
+MAX_TO_KEEP = 5  # Maximum number of checkpoints to keep.
 
 flags.DEFINE_string('data_dir', None, 'Preprocessed data.')
 flags.DEFINE_string('file_extension', 'png', 'Image data file extension.')
@@ -46,7 +47,7 @@ flags.DEFINE_float('reconstr_weight', 0.85, 'Frame reconstruction loss weight.')
 flags.DEFINE_float('ssim_weight', 0.15, 'SSIM loss weight.')
 flags.DEFINE_float('smooth_weight', 0.04, 'Smoothness loss weight.')
 flags.DEFINE_float('icp_weight', 0.0, 'ICP loss weight.')
-flags.DEFINE_float('size_constraint_weight', 0.0005, 'Weight of the object '
+flags.DEFINE_float('size_constraint_weight', 0.0, 'Weight of the object '
                    'size constraint loss. Use only when motion handling is '
                    'enabled.')
 flags.DEFINE_integer('batch_size', 4, 'The size of a sample batch')
@@ -83,7 +84,7 @@ flags.DEFINE_string('imagenet_ckpt', None, 'Initialize the weights according '
 flags.DEFINE_string('checkpoint_dir', None, 'Directory to save model '
                     'checkpoints.')
 flags.DEFINE_integer('train_steps', 10000000, 'Number of training steps.')
-flags.DEFINE_integer('summary_freq', 100, 'Save summaries every N steps.')
+flags.DEFINE_integer('summary_freq', 10000, 'Save summaries every N steps.')
 flags.DEFINE_bool('depth_upsampling', True, 'Whether to apply depth '
                   'upsampling of lower-scale representations before warping to '
                   'compute reconstruction loss on full-resolution image.')
@@ -103,14 +104,13 @@ flags.DEFINE_bool('joint_encoder', False, 'Whether to share parameters '
                   'encoder architecture. The egomotion network is then '
                   'operating only on the hidden representation provided by the '
                   'joint encoder.')
-flags.DEFINE_bool('handle_motion', True, 'Whether to try to handle motion by '
+flags.DEFINE_bool('handle_motion', False, 'Whether to try to handle motion by '
                   'using the provided segmentation masks.')
 flags.DEFINE_string('master', 'local', 'Location of the session.')
 
 FLAGS = flags.FLAGS
 flags.mark_flag_as_required('data_dir')
 flags.mark_flag_as_required('checkpoint_dir')
-
 
 def main(_):
   # Fixed seed for repeatability
@@ -189,6 +189,13 @@ def main(_):
 
 def train(train_model, pretrained_ckpt, imagenet_ckpt, checkpoint_dir,
           train_steps, summary_freq):
+
+  # WandB
+  id = wandb.util.generate_id()
+  dir = '/media/RAIDONE/radice/neural-networks-data/struct2depth'
+  wandb.init(project="struct2depth", entity="carloradice", config=FLAGS, sync_tensorboard=True,
+             name="kitti-{}x{}-{}".format(train_model.img_width, train_model.img_height, id), id=id, dir=dir)
+
   """Train model."""
   vars_to_restore = None
   if pretrained_ckpt is not None:
