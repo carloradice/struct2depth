@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ckpt_dir="/media/RAIDONE/radice/neural-networks-data/struct2depth/models/kitti-416x128"
-data_dir="/media/RAIDONE/radice/datasets/kitti/struct2depth"
+ckpt_dir="/media/RAIDONE/radice/neural-networks-data/struct2depth/models/oxford-416x128"
+data_dir="/media/RAIDONE/radice/datasets/oxford/struct2depth"
 imagenet_ckpt="/media/RAIDONE/radice/neural-networks-data/depth-and-motion-learning/models/resnet18/model.ckpt"
 
 python train.py \

@@ -46,6 +46,21 @@ def crop_cityscapes(im, resize=None):
     im = cv2.resize(im, resize)
   return im
 
+def crop_oxford(im):
+  # Perform center cropping, preserving 50% vertically.
+  middle_perc = 0.50
+  left = 1 - middle_perc
+  half = left / 2
+  a = im[int(im.shape[0] * (half)):int(im.shape[0] * (1 - half)), :]
+  # Resize to match target height while not preserving aspect ratio.
+  wdt = 416
+  b = cv2.resize(a, (wdt, 128))
+  # Perform center cropping horizontally.
+  remain = b.shape[1] - 416
+  c = b[:, int(remain / 2):b.shape[1] - int(remain / 2)]
+  print(c.shape)
+  return c
+
 
 def gray2rgb(im, cmap=CMAP_DEFAULT):
   cmap = plt.get_cmap(cmap)
